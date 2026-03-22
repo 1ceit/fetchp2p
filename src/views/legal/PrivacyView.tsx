@@ -152,8 +152,7 @@ const SubSection = ({ title, children, id }: { title: string; children: React.Re
                   exit={{ scale: 0.5, opacity: 0 }}
                   className="flex items-center gap-1"
                 >
-                  <Check size={12} className="text-orange-500" />
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-orange-500">Copied</span>
+                  <Check size={12} />
                 </motion.div>
               ) : (
                 <motion.div

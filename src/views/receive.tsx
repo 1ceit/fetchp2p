@@ -86,6 +86,14 @@ function ReceiveContent() {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [step, progress]);
 
+  useEffect(() => {
+    const initialAuto = searchParams.get("auto") === "true";
+    if (initialCode && initialCode.length === 5 && initialAuto) {
+      startReceive();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const reset = () => {
     setStep("idle");
     setReceiveCode("");

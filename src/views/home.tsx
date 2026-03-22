@@ -74,7 +74,7 @@ export default function HomePage() {
 
   const handleReceive = () => {
     if (receiveCode.length >= 5) {
-      router.push(`/receive?code=${receiveCode}`);
+      router.push(`/receive?code=${receiveCode}&auto=true`);
     } else {
       router.push("/receive");
     }
@@ -215,7 +215,7 @@ export default function HomePage() {
                       iconRight={<ArrowRight className="w-4 h-4" />}
                       className="w-full py-3.5"
                     >
-                      Connect & Receive
+                      Connect
                     </Button>
                   </motion.div>
                 )}
