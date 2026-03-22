@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { FileProvider } from "@/context/FileContext";
@@ -42,11 +42,16 @@ export const metadata: Metadata = {
     images: ["/og-image.png"],
     creator: "@fetchp2p",
   },
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
   robots: {
     index: true,
     follow: true,
   },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 import SWRegistration from "@/components/SWRegistration";

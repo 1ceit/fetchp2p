@@ -98,6 +98,7 @@ function SendContent() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const wakeLockRef = useRef<any>(null);
   const useFallbackRef = useRef(false);
+  const pendingCandidates = useRef<RTCIceCandidateInit[]>([]);
   const lastSpeedTimestampRef = useRef<number>(0);
   const lastSpeedBytesRef = useRef<number>(0);
 
@@ -109,7 +110,7 @@ function SendContent() {
   useEffect(() => {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const host = window.location.host; // includes port
-    
+
     let wsUrl = "";
     if (host.includes("localhost") || host.includes("127.0.0.1")) {
       wsUrl = `ws://${window.location.hostname}:9000/peerjs/`;
@@ -274,16 +275,17 @@ function SendContent() {
         pcRef.current = pc;
 
         pc.onicecandidate = (e) => {
-          if (e.candidate) sendMessage({ type: "ice-candidate", candidate: e.candidate });
+          if (e.candidate) {
+            sendMessage({ type: "ice-candidate", candidate: e.candidate });
+          }
         };
 
         pc.onconnectionstatechange = () => console.log("WebRTC State:", pc.connectionState);
 
-        const dc = pc.createDataChannel("fileTransfer", { negotiated: true, id: 0 });
+        const dc = pc.createDataChannel("fileTransfer");
         dcRef.current = dc;
 
         dc.onopen = () => {
-          console.log("WebRTC DataChannel OPEN.");
           clearTimeout(fallbackTimeout);
           useFallbackRef.current = false;
           setConnectionType("WebRTC (Direct P2P)");
@@ -307,8 +309,16 @@ function SendContent() {
 
       } else if (msg.type === "answer") {
         await pcRef.current?.setRemoteDescription(new RTCSessionDescription(msg.answer));
+        for (const c of pendingCandidates.current) {
+          pcRef.current?.addIceCandidate(new RTCIceCandidate(c)).catch(console.error);
+        }
+        pendingCandidates.current = [];
       } else if (msg.type === "ice-candidate") {
-        await pcRef.current?.addIceCandidate(new RTCIceCandidate(msg.candidate)).catch(console.error);
+        if (pcRef.current?.remoteDescription) {
+          await pcRef.current.addIceCandidate(new RTCIceCandidate(msg.candidate)).catch(console.error);
+        } else {
+          pendingCandidates.current.push(msg.candidate);
+        }
       } else if (msg.type === "peer_disconnected") {
         if (stepRef.current === "done") return;
         setErrorMsg("The receiver cancelled or disconnected from the transfer.");

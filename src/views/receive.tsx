@@ -60,6 +60,7 @@ function ReceiveContent() {
   const dcRef = useRef<RTCDataChannel | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const wakeLockRef = useRef<any>(null);
+  const pendingCandidates = useRef<RTCIceCandidateInit[]>([]);
   const lastProgressUpdateRef = useRef<number>(0);
   const lastSpeedTimestampRef = useRef<number>(0);
   const lastSpeedBytesRef = useRef<number>(0);
@@ -108,7 +109,7 @@ function ReceiveContent() {
 
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const host = window.location.host; // includes port
-    
+
     let wsUrl = "";
     if (host.includes("localhost") || host.includes("127.0.0.1")) {
       wsUrl = `ws://${window.location.hostname}:9000/peerjs/`;
@@ -283,9 +284,7 @@ function ReceiveContent() {
       let msg;
       try { msg = JSON.parse(event.data); } catch { return; }
 
-      if (msg.type === "peer_connected") {
-        console.log("Peers connected via WS. Waiting for WebRTC offer...");
-      } else if (msg.type === "offer") {
+      if (msg.type === "offer") {
         console.log("Received WebRTC Offer.");
         const pc = new RTCPeerConnection({
           iceServers: [
@@ -297,13 +296,14 @@ function ReceiveContent() {
         pcRef.current = pc;
 
         pc.onicecandidate = (e) => {
-          if (e.candidate) sendMessage({ type: "ice-candidate", candidate: e.candidate });
+          if (e.candidate) {
+            sendMessage({ type: "ice-candidate", candidate: e.candidate });
+          }
         };
 
         pc.onconnectionstatechange = () => console.log("WebRTC State:", pc.connectionState);
 
         pc.ondatachannel = (e) => {
-          console.log("WebRTC DataChannel Received.");
           const dc = e.channel;
           dcRef.current = dc;
           dc.binaryType = "arraybuffer";
@@ -313,12 +313,23 @@ function ReceiveContent() {
         };
 
         await pc.setRemoteDescription(new RTCSessionDescription(msg.offer));
+
+        for (const c of pendingCandidates.current) {
+          pc.addIceCandidate(new RTCIceCandidate(c)).catch(console.error);
+        }
+        pendingCandidates.current = [];
+
         const answer = await pc.createAnswer();
+
         await pc.setLocalDescription(answer);
         sendMessage({ type: "answer", answer });
 
       } else if (msg.type === "ice-candidate") {
-        await pcRef.current?.addIceCandidate(new RTCIceCandidate(msg.candidate)).catch(console.error);
+        if (pcRef.current?.remoteDescription) {
+          await pcRef.current.addIceCandidate(new RTCIceCandidate(msg.candidate)).catch(console.error);
+        } else {
+          pendingCandidates.current.push(msg.candidate);
+        }
       } else if (msg.type === "peer_disconnected") {
         if (stepRef.current === "done") return;
         setErrorMsg("The sender disconnected from the transfer.");
