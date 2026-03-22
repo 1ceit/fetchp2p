@@ -46,6 +46,7 @@ function ReceiveContent() {
   const [receiveCode, setReceiveCode] = useState(initialCode);
   const [step, setStep] = useState<Step>(initialCode ? "ready" : "idle");
   const [progress, setProgress] = useState(0);
+  const [transferSpeed, setTransferSpeed] = useState(0);
   const [errorMsg, setErrorMsg] = useState("");
   const [fileMeta, setFileMeta] = useState<{ name: string, size: number } | null>(null);
   const [showLargeFileWarning, setShowLargeFileWarning] = useState(false);
@@ -60,6 +61,8 @@ function ReceiveContent() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const wakeLockRef = useRef<any>(null);
   const lastProgressUpdateRef = useRef<number>(0);
+  const lastSpeedTimestampRef = useRef<number>(0);
+  const lastSpeedBytesRef = useRef<number>(0);
 
   const [prevInitialCode, setPrevInitialCode] = useState(initialCode);
   if (initialCode && initialCode !== prevInitialCode) {
@@ -85,6 +88,7 @@ function ReceiveContent() {
     setStep("idle");
     setReceiveCode("");
     setProgress(0);
+    setTransferSpeed(0);
     setErrorMsg("");
     setFileMeta(null);
     setShowLargeFileWarning(false);
@@ -151,6 +155,7 @@ function ReceiveContent() {
         const processChunk = async (chunk: ArrayBuffer | Blob) => {
           const buffer = chunk instanceof Blob ? await chunk.arrayBuffer() : chunk;
 
+          const byteLength = buffer.byteLength;
           if (navigator.serviceWorker && navigator.serviceWorker.controller) {
             navigator.serviceWorker.controller.postMessage({
               type: "CHUNK",
@@ -161,7 +166,7 @@ function ReceiveContent() {
             receiveBuffer.push(new Uint8Array(buffer));
           }
 
-          receivedSize += buffer.byteLength;
+          receivedSize += byteLength;
           if (expectedSize > 0) {
             const currentPct = (receivedSize / expectedSize) * 100;
             setProgress(Math.min(currentPct, 99));
@@ -171,6 +176,16 @@ function ReceiveContent() {
               const feedback = JSON.stringify({ type: "PROGRESS", receivedSize });
               if (dcRef.current?.readyState === "open") dcRef.current.send(feedback);
               else if (ws.readyState === WebSocket.OPEN) ws.send(feedback);
+            }
+
+            const now = Date.now();
+            if (now - lastSpeedTimestampRef.current > 500) {
+              const bytesDiff = receivedSize - lastSpeedBytesRef.current;
+              const timeDiff = now - lastSpeedTimestampRef.current;
+              const speedBps = (bytesDiff / timeDiff) * 1000;
+              setTransferSpeed(speedBps);
+              lastSpeedTimestampRef.current = now;
+              lastSpeedBytesRef.current = receivedSize;
             }
           }
         };
@@ -197,6 +212,9 @@ function ReceiveContent() {
           expectedSize = msg.size;
           receiveBuffer = [];
           receivedSize = 0;
+          lastSpeedTimestampRef.current = Date.now();
+          lastSpeedBytesRef.current = 0;
+          setTransferSpeed(0);
 
           // Notify Service Worker of new stream
           const isStreaming = !!(navigator.serviceWorker && navigator.serviceWorker.controller);
@@ -480,7 +498,7 @@ function ReceiveContent() {
                                 {fileMeta.name}
                               </span>
                               <span className="text-[10px]" style={{ color: "var(--color-ink-3)" }}>
-                                {formatBytes(fileMeta.size)}
+                                {formatBytes(fileMeta.size)} • {formatBytes(transferSpeed)}/s
                               </span>
                             </div>
                           ) : (

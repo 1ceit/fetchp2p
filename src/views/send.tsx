@@ -84,6 +84,7 @@ function SendContent() {
   const [copiedUrl, setCopiedUrl] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [transferSpeed, setTransferSpeed] = useState(0);
   const [connectionType, setConnectionType] = useState<string>("Connecting...");
   const [errorMsg, setErrorMsg] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -97,6 +98,8 @@ function SendContent() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const wakeLockRef = useRef<any>(null);
   const useFallbackRef = useRef(false);
+  const lastSpeedTimestampRef = useRef<number>(0);
+  const lastSpeedBytesRef = useRef<number>(0);
 
   const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/r/${shareCode}` : "";
 
@@ -170,6 +173,10 @@ function SendContent() {
           const file = filesRef.current[0];
           if (!file) return;
 
+          lastSpeedTimestampRef.current = Date.now();
+          lastSpeedBytesRef.current = 0;
+          setTransferSpeed(0);
+
           sendData({
             type: "FILE_META",
             name: file.name,
@@ -233,6 +240,16 @@ function SendContent() {
           const file = filesRef.current[0];
           if (file && msg.receivedSize) {
             setProgress(Math.min((msg.receivedSize / file.size) * 100, 99));
+
+            const now = Date.now();
+            if (now - lastSpeedTimestampRef.current > 500) {
+              const bytesDiff = msg.receivedSize - lastSpeedBytesRef.current;
+              const timeDiff = now - lastSpeedTimestampRef.current;
+              const speedBps = (bytesDiff / timeDiff) * 1000;
+              setTransferSpeed(speedBps);
+              lastSpeedTimestampRef.current = now;
+              lastSpeedBytesRef.current = msg.receivedSize;
+            }
           }
         }
       } catch (err) {
@@ -376,6 +393,7 @@ function SendContent() {
     setStep("idle");
     setFiles([]);
     setProgress(0);
+    setTransferSpeed(0);
     setConnectionType("Connecting...");
     setErrorMsg("");
     clearFiles();
@@ -591,7 +609,7 @@ function SendContent() {
                             {files[0]?.name}
                           </span>
                           <span className="text-[10px]" style={{ color: "var(--color-ink-3)" }}>
-                            {formatBytes(files[0]?.size || 0)}
+                            {formatBytes(files[0]?.size || 0)} • {formatBytes(transferSpeed)}/s
                           </span>
                         </div>
                       </div>
