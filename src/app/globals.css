@@ -1,0 +1,139 @@
+/* ─── Google Fonts ─── */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap');
+
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ─── Light Mode Tokens ─── */
+:root {
+  /* Backgrounds */
+  --color-paper:       #f5e9d2;   /* warm manila page bg */
+  --color-surface:     #ecdfc6;   /* card/section bg */
+  --color-surface-2:   #e3d3b5;   /* hover */
+
+  /* Borders */
+  --color-border:      #b89b70;
+  --color-border-soft: #cdb688;
+
+  /* Text — high contrast on light bg */
+  --color-ink:         #180e06;   /* near-black ink, large headings */
+  --color-ink-2:       #704c2b;   /* body text */
+  --color-ink-3:       #6b4a28;   /* secondary/muted */
+  --color-ink-4:       #9e7a52;   /* placeholder / very muted */
+
+  /* Accent — vivid terracotta */
+  --color-accent:      #bf5a24;
+  --color-accent-hover:#a34a1a;
+  --color-accent-soft: #f5ddd0;
+
+  /* Semantic */
+  --color-success:     #2e6b42;
+  --color-error:       #a02820;
+  --color-warning:     #956018;
+
+  /* Shape */
+  --radius-sm:  6px;
+  --radius-md:  10px;
+  --radius-lg:  16px;
+  --radius-xl:  24px;
+
+  /* Flat offset shadows */
+  --shadow-sm:     2px 2px 0 var(--color-border);
+  --shadow-md:     3px 3px 0 var(--color-border);
+  --shadow-lg:     4px 4px 0 var(--color-border);
+  --shadow-accent: 3px 3px 0 #7a2e0e;
+
+  /* Typography */
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-sans:    'DM Sans', system-ui, sans-serif;
+  --font-mono:    'DM Mono', 'Courier New', monospace;
+}
+
+/* ─── Dark Mode Tokens ─── */
+.dark {
+  --color-paper:       #201e1c;   /* very dark espresso */
+  --color-surface:     #2a2825;   /* card bg — clearly lighter than paper */
+  --color-surface-2:   #3a3835;   /* hover */
+
+  --color-border:      #69411c;
+  --color-border-soft: #5a3518;
+
+  /* Text — light cream on dark, very readable */
+  --color-ink:         #f5e8d0;   /* near-white warm cream */
+  --color-ink-2:       #ac9570;   /* body text */
+  --color-ink-3:       #a07850;   /* secondary */
+  --color-ink-4:       #6a4c30;   /* placeholder */
+
+  /* Accent — brighter in dark mode */
+  --color-accent:      #d4672c;
+  --color-accent-hover:#e07838;
+  --color-accent-soft: #442b1f60;
+
+  --color-success:     #3e8e56;
+  --color-error:       #cc3830;
+  --color-warning:     #c07828;
+
+  --shadow-sm:     2px 2px 0 var(--color-border);
+  --shadow-md:     3px 3px 0 var(--color-border);
+  --shadow-lg:     4px 4px 0 var(--color-border);
+  --shadow-accent: 3px 3px 0 #7a2e0e;
+}
+
+/* ─── Base ─── */
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.6;
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    min-height: 100vh;
+  }
+
+  ::selection {
+    background: var(--color-accent);
+    color: #fff;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    color: var(--color-ink);
+    line-height: 1.1;
+  }
+
+  code, pre, kbd { font-family: var(--font-mono); }
+}
+
+/* ─── Utility ─── */
+.card {
+  background-color: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.card-paper {
+  background-color: var(--color-paper);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.divider {
+  height: 1.5px;
+  background-color: var(--color-border-soft);
+  border: none;
+}
+
+::-webkit-scrollbar { 
+  display: none;
+}
