@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { FileProvider } from "@/context/FileContext";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://fetch.1ceit.com"),
   title: {
     default: "FetchP2P - Secure Peer-to-Peer File Transfer",
     template: "%s | FetchP2P"

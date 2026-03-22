@@ -4,8 +4,7 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: '*',
-      allow: ['/', '/send', '/receive', '/terms', '/privacy'],
-      disallow: ['/r/'],
+      allow: ['/', '/send', '/receive', '/terms', '/privacy', '/r/'],
     },
     sitemap: 'https://fetch.1ceit.com/sitemap.xml',
   }
