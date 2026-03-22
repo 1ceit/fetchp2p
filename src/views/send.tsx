@@ -289,7 +289,11 @@ function SendContent() {
           clearTimeout(fallbackTimeout);
           useFallbackRef.current = false;
           setConnectionType("WebRTC (Direct P2P)");
-          dc.send(JSON.stringify({ type: "HELLO" }));
+          const file = filesRef.current[0];
+          dc.send(JSON.stringify({ 
+            type: "HELLO", 
+            fileMeta: file ? { name: file.name, size: file.size, fileType: file.type } : undefined 
+          }));
         };
 
         dc.onmessage = (e) => handleDataMessage(e.data);
@@ -299,7 +303,11 @@ function SendContent() {
             console.log("WebRTC Timeout (8s). Activating WebSocket Fallback.");
             useFallbackRef.current = true;
             setConnectionType("WebSocket (Relay)");
-            sendMessage({ type: "HELLO" });
+            const file = filesRef.current[0];
+            sendMessage({ 
+              type: "HELLO", 
+              fileMeta: file ? { name: file.name, size: file.size, fileType: file.type } : undefined 
+            });
           }
         }, 8000);
 

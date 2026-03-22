@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { RefreshCw, ArrowLeft, ArrowRight } from "lucide-react";
+import { RefreshCw, ArrowLeft, ArrowRight, DownloadCloud } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   DogMascot,
@@ -15,11 +15,12 @@ import {
 } from "@/components/ui";
 import { formatBytes } from "@/lib/utils";
 
-type Step = "idle" | "ready" | "connecting" | "transferring" | "done" | "error";
+type Step = "idle" | "ready" | "connecting" | "prompting" | "transferring" | "done" | "error";
 
 
 function mascotState(step: Step): MascotState {
   if (step === "transferring") return "transferring";
+  if (step === "prompting") return "waiting";
   if (step === "connecting") return "waiting";
   if (step === "done") return "done";
   if (step === "error") return "error";
@@ -28,8 +29,8 @@ function mascotState(step: Step): MascotState {
 
 function mascotCaption(step: Step, errorMsg?: string): string {
   if (step === "idle") return "Enter the code and I'll fetch your files!";
-  if (step === "ready") return "Looks good — go ahead and connect!";
-  if (step === "connecting") return "Sniffing out the connection…";
+  if (step === "ready") return "Looks good - go ahead and connect!";
+  if (step === "connecting") return "Sniffing out the connection...";
   if (step === "transferring") return "Fetching your files!";
   if (step === "done") return "Got it! Files received! 🎉";
   if (step === "error" && errorMsg?.includes("disconnected")) return "Uh oh... the sender left!";
@@ -197,15 +198,14 @@ function ReceiveContent() {
       try {
         const msg = typeof data === "string" ? JSON.parse(data) : data;
         if (msg.type === "HELLO") {
-          console.log("Received HELLO from sender. Signaling READY.");
-          const reply = JSON.stringify({ type: "READY" });
-          if (dcRef.current?.readyState === "open") {
-            setConnectionType("WebRTC (Direct P2P)");
-            dcRef.current.send(reply);
-          } else {
-            setConnectionType("WebSocket (Relay)");
-            ws.send(reply);
+          console.log("Received HELLO from sender. Waiting for user to accept.");
+          if (msg.fileMeta) {
+            setFileMeta({ name: msg.fileMeta.name, size: msg.fileMeta.size });
+            if (msg.fileMeta.size > 100 * 1024 * 1024 && !(navigator.serviceWorker && navigator.serviceWorker.controller)) {
+              setShowLargeFileWarning(true);
+            }
           }
+          setStep("prompting");
         } else if (msg.type === "FILE_META") {
           console.log("Incoming file meta:", msg);
           requestWakeLock();
@@ -229,12 +229,9 @@ function ReceiveContent() {
             });
           }
 
-          if (msg.size > 100 * 1024 * 1024 && !isStreaming) {
-            setShowLargeFileWarning(true);
-          }
-
-          setFileMeta({ name: msg.name, size: msg.size });
-          setStep("transferring");
+          currentMeta = msg;
+          expectedSize = msg.size;
+          receiveBuffer = [];
         } else if (msg.type === "EOF") {
           console.log("Received EOF. Finalizing...");
 
@@ -356,6 +353,27 @@ function ReceiveContent() {
     };
   };
 
+  const handleAccept = () => {
+    console.log("User accepted. Signaling READY.");
+    const reply = JSON.stringify({ type: "READY" });
+    if (dcRef.current?.readyState === "open") {
+      setConnectionType("WebRTC (Direct P2P)");
+      dcRef.current.send(reply);
+    } else {
+      setConnectionType("WebSocket (Relay)");
+      wsRef.current?.send(reply);
+    }
+    setStep("transferring");
+  };
+
+  const handleDecline = () => {
+    console.log("User declined. Disconnecting.");
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: "peer_disconnected" }));
+    }
+    reset();
+  };
+
   return (
     <div
       className="min-h-screen flex flex-col items-center px-4 pt-10 pb-20"
@@ -446,7 +464,7 @@ function ReceiveContent() {
                     iconRight={<ArrowRight className="w-4 h-4" />}
                     className="w-full py-3"
                   >
-                    Connect & Receive
+                    Connect
                   </Button>
                 </motion.div>
               )}
@@ -462,6 +480,30 @@ function ReceiveContent() {
               )}
 
               {/* Transferring */}
+              {step === "prompting" && fileMeta && (
+                <div className="flex flex-col items-center justify-center min-h-[300px]">
+                  <h2 className="text-[20px] font-bold mb-2 tracking-tight text-center" style={{ color: "var(--color-ink)" }}>
+                    Incoming File
+                  </h2>
+                  <div className="flex flex-col items-center mb-8 max-w-[280px]">
+                    <span className="text-[14px] font-medium truncate w-full text-center" style={{ color: "var(--color-ink-2)" }} title={fileMeta.name}>
+                      {fileMeta.name}
+                    </span>
+                    <span className="text-[13px] mt-1" style={{ color: "var(--color-ink-3)" }}>
+                      {formatBytes(fileMeta.size)}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-3 w-full max-w-[280px]">
+                    <Button variant="primary" size="lg" onClick={handleAccept}>
+                      <DownloadCloud className="w-5 h-5 mr-2" /> Accept & Download
+                    </Button>
+                    <Button variant="ghost" size="lg" onClick={handleDecline}>
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               {step === "transferring" && (
                 <motion.div key="transferring" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-6 py-4">
 
