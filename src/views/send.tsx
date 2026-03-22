@@ -294,12 +294,12 @@ function SendContent() {
 
         fallbackTimeout = setTimeout(() => {
           if (dc.readyState !== "open") {
-            console.log("WebRTC Timeout (3s). Activating WebSocket Fallback.");
+            console.log("WebRTC Timeout (8s). Activating WebSocket Fallback.");
             useFallbackRef.current = true;
             setConnectionType("WebSocket (Relay)");
             sendMessage({ type: "HELLO" });
           }
-        }, 3000);
+        }, 8000);
 
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
