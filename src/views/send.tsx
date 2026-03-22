@@ -104,13 +104,15 @@ function SendContent() {
   useEffect(() => { filesRef.current = files; }, [files]);
 
   useEffect(() => {
-    const host = process.env.NEXT_PUBLIC_PEER_HOST || window.location.hostname || "localhost";
-    const port = Number(process.env.NEXT_PUBLIC_PEER_PORT) || 9000;
-    const secure = process.env.NEXT_PUBLIC_PEER_SECURE === "true";
-    let urlPath = process.env.NEXT_PUBLIC_PEER_PATH || "/";
-    if (!urlPath.startsWith("/")) urlPath = "/" + urlPath;
-
-    const wsUrl = `${secure ? "wss" : "ws"}://${host}:${port}${urlPath}`;
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const host = window.location.host; // includes port
+    
+    let wsUrl = "";
+    if (host.includes("localhost") || host.includes("127.0.0.1")) {
+      wsUrl = `ws://${window.location.hostname}:9000/peerjs`;
+    } else {
+      wsUrl = `${protocol}//${host}/peerjs`;
+    }
     const ws = new WebSocket(wsUrl);
     ws.binaryType = "arraybuffer";
     wsRef.current = ws;
