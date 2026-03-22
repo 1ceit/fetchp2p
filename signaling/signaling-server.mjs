@@ -6,7 +6,8 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const STATS_FILE = path.join(__dirname, "../stats.json");
 
-const wss = new WebSocketServer({ port: 9000 });
+const PORT = process.env.PORT || 9000;
+const wss = new WebSocketServer({ port: PORT });
 
 let stats = { totalBytes: 0 };
 try {
@@ -25,7 +26,7 @@ const saveStats = () => {
   }
 };
 
-console.log("WebSocket Signaling & Relay Server running on ws://localhost:9000");
+console.log(`WebSocket Signaling & Relay Server running on port ${PORT}`);
 
 const rooms = new Map();
 
