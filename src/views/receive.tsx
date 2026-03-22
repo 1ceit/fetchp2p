@@ -107,9 +107,9 @@ function ReceiveContent() {
     
     let wsUrl = "";
     if (host.includes("localhost") || host.includes("127.0.0.1")) {
-      wsUrl = `ws://${window.location.hostname}:9000/peerjs`;
+      wsUrl = `ws://${window.location.hostname}:9000/peerjs/`;
     } else {
-      wsUrl = `${protocol}//${host}/peerjs`;
+      wsUrl = `${protocol}//${host}/peerjs/`;
     }
     const ws = new WebSocket(wsUrl);
     ws.binaryType = "arraybuffer";
