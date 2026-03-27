@@ -56,6 +56,7 @@ export const viewport: Viewport = {
 
 import SWRegistration from "@/components/SWRegistration";
 import { Footer } from "@/components/ui/Footer";
+import { LenisProvider } from "@/components/LenisProvider";
 
 export default function RootLayout({
   children,
@@ -90,10 +91,12 @@ export default function RootLayout({
         <SWRegistration />
         <FileProvider>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-            <main className="min-h-screen flex flex-col">
-              <div className="flex-1">{children}</div>
-              <Footer />
-            </main>
+            <LenisProvider>
+              <main className="min-h-screen flex flex-col">
+                <div className="flex-1">{children}</div>
+                <Footer />
+              </main>
+            </LenisProvider>
           </ThemeProvider>
         </FileProvider>
       </body>
