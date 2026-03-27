@@ -10,8 +10,8 @@ export const metadata: Metadata = {
     template: "%s | FetchP2P"
   },
   description: "Send files instantly, peer-to-peer. No accounts, no size limits, no servers. Drop a file. Link a friend. Done.",
-  keywords: ["P2P", "File Transfer", "Peer-to-Peer", "Secure", "Private", "Send Files", "WebRTC"],
-  authors: [{ name: "FetchP2P Team" }],
+  keywords: ["P2P", "File Transfer", "Peer-to-Peer", "Secure", "Private", "Send Files", "WebRTC", "Browser-Based", "No Size Limits", "Instant Transfer", "Fetch P2P", "File Sharing", "File Transfer", "Secure File Transfer", "Private File Sharing"],
+  authors: [{ name: "CJ Artz" }],
   creator: "FetchP2P",
   publisher: "FetchP2P",
   formatDetection: {
@@ -40,18 +40,24 @@ export const metadata: Metadata = {
     title: "FetchP2P - Secure Peer-to-Peer File Transfer",
     description: "Instant, private P2P file sharing directly in your browser.",
     images: ["/og-image.png"],
-    creator: "@fetchp2p",
   },
   robots: {
     index: true,
     follow: true,
+  },
+  alternates: {
+    canonical: "https://fetch.1ceit.com",
   },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
+  maximumScale: 5,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#000000" },
+  ],
 };
 
 import SWRegistration from "@/components/SWRegistration";
@@ -71,6 +77,9 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "SoftwareApplication",
               "name": "FetchP2P",
+              "alternateName": "Fetch P2P",
+              "url": "https://fetch.1ceit.com",
+              "image": "https://fetch.1ceit.com/og-image.png",
               "operatingSystem": "any",
               "applicationCategory": "UtilitiesApplication",
               "description": "Secure, peer-to-peer file transfer directly in the browser with no size limits.",
@@ -83,7 +92,9 @@ export default function RootLayout({
                 "Peer-to-peer encryption",
                 "Unlimited file size",
                 "No server storage",
-                "Real-time transfer tracking"
+                "Real-time transfer tracking",
+                "Cross-platform support",
+                "Open source"
               ]
             })
           }}
