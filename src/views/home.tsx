@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Upload, Shield, Zap, Link2, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -13,7 +13,6 @@ import {
 	ScrollToTop,
 } from "@/components/ui";
 import { useFiles } from "@/context/FileContext";
-import stats from "../../stats.json";
 import { formatBytes } from "@/lib/utils";
 
 type Mode = "send" | "receive";
@@ -46,6 +45,7 @@ export default function HomePage() {
 	const [mode, setMode] = useState<Mode>("send");
 	const [isDragging, setIsDragging] = useState(false);
 	const [receiveCode, setReceiveCode] = useState("");
+	const [totalBytes, setTotalBytes] = useState(0);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	/* ── Drag handling ── */
@@ -68,6 +68,14 @@ export default function HomePage() {
 	}, []);
 
 	const onDragLeave = useCallback(() => setIsDragging(false), []);
+
+	/* ── Fetch stats ── */
+	useEffect(() => {
+		fetch("/stats.json")
+			.then((res) => res.json())
+			.then((data) => setTotalBytes(data.totalBytes))
+			.catch(() => setTotalBytes(0));
+	}, []);
 
 	const onFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const selected = Array.from(e.target.files || []);
@@ -521,7 +529,7 @@ export default function HomePage() {
 									color: "var(--color-accent)",
 								}}
 							>
-								{formatBytes(stats.totalBytes)}
+								{formatBytes(totalBytes)}
 							</span>
 						</div>
 						<p
