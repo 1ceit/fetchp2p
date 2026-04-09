@@ -4,7 +4,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const STATS_FILE = path.join(__dirname, "../stats.json");
+const STATS_FILE = path.join(__dirname, "../public/stats.json");
 
 const PORT = process.env.PORT || 9000;
 const wss = new WebSocketServer({ port: PORT });
