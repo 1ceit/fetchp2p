@@ -5,7 +5,8 @@
 ![Next.js](https://img.shields.io/badge/Next.js-16-black.svg)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-iceit-yellow?logo=buy-me-a-coffee)](https://buymeacoffee.com/iceit)
 
-A privacy-focused, peer-to-peer file transfer utility built with Next.js, WebRTC, and a custom WebSocket signaling server. Files are streamed directly between browsers with zero server-side storage. https://fetch.1ceit.com
+A privacy-focused, peer-to-peer file transfer utility built with Next.js, WebRTC, and a custom WebSocket signaling server. Files are streamed directly between browsers with zero server-side storage. 
+Offical site: https://fetch.1ceit.com
 
 
 ## Project Structure
